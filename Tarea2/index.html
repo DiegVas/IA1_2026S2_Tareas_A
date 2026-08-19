@@ -1,0 +1,229 @@
+<!doctype html>
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Motor de Inferencia Prolog — Consulta de Inventario</title>
+
+    <!-- Tipografias: IBM Plex Mono (datos/codigo) + Plus Jakarta Sans (interfaz) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Hoja de estilos -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Contenedor principal de ancho fijo y centrado -->
+    <div class="layout-container">
+      <!-- 1. Encabezado de la aplicacion con metadatos del motor -->
+      <header class="site-header">
+        <div class="header-brand">
+          <span class="system-tag">SWI-PROLOG ENGINE</span>
+          <h1 class="header-title">Inspector de Inventario Lógico</h1>
+        </div>
+        <div class="header-meta">
+          <span class="status-indicator active" title="Conexion activa"></span>
+          <span class="meta-label">PySwip 0.3.3 &bull; FastAPI REST</span>
+        </div>
+      </header>
+
+      <!-- 2. Panel de Consulta (Formulario y Presets de prueba) -->
+      <section class="query-panel">
+        <!-- Formulario para enviar consultas GET al backend -->
+        <form id="search-form" class="query-form" novalidate>
+          <div class="input-wrapper">
+            <label for="item-input" class="input-label"
+              >Átomo de búsqueda:</label
+            >
+            <div class="field-group">
+              <input
+                type="text"
+                id="item-input"
+                placeholder="Ingresa un ítem (ej. pocion, espada, escudo)..."
+                autocomplete="off"
+                spellcheck="false"
+                required
+              />
+              <button
+                type="button"
+                id="clear-btn"
+                class="btn-clear"
+                aria-label="Limpiar campo"
+              >
+                &times;
+              </button>
+            </div>
+          </div>
+          <button type="submit" id="submit-btn" class="btn-submit">
+            <span class="btn-text">Consultar</span>
+            <span class="btn-spinner" aria-hidden="true"></span>
+          </button>
+        </form>
+
+        <!-- Botones de consulta rapida sin recargar pagina -->
+        <div class="presets-row">
+          <span class="presets-title">Consultas de muestra:</span>
+          <div class="presets-list">
+            <button type="button" class="preset-pill" data-item="pocion">
+              pocion [duplicado]
+            </button>
+            <button type="button" class="preset-pill" data-item="espada">
+              espada
+            </button>
+            <button type="button" class="preset-pill" data-item="escudo">
+              escudo
+            </button>
+            <button type="button" class="preset-pill" data-item="antorcha">
+              antorcha
+            </button>
+            <button type="button" class="preset-pill" data-item="mapa">
+              mapa
+            </button>
+            <button type="button" class="preset-pill" data-item="cuerda">
+              cuerda
+            </button>
+            <button
+              type="button"
+              class="preset-pill preset-pill-dim"
+              data-item="diamante"
+            >
+              diamante [no miembro]
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Barra de Estado Dinamica (Informa exito/fallo de member/2) -->
+      <div id="status-bar" class="status-bar" style="display: none">
+        <div class="status-meta">
+          <span class="status-flag" id="status-flag">UNIFICACIÓN EXITOSA</span>
+          <p class="status-text" id="status-text"></p>
+        </div>
+        <div class="query-signature">
+          <span class="query-code" id="query-signature-code"
+            >?- procesar_inventario(...)</span
+          >
+        </div>
+      </div>
+
+      <!-- 4. Vista de Resultados (Renderizado reactivo con JS) -->
+      <main id="results-view" class="results-view" style="display: none">
+        <!-- Fila de Metricas Cuantitativas -->
+        <div class="metrics-row">
+          <!-- Metrica 1: Longitud Total (length/2) -->
+          <div class="metric-box">
+            <span class="metric-tag">length/2</span>
+            <span class="metric-figure" id="val-total-items">0</span>
+            <span class="metric-caption">Total de elementos</span>
+          </div>
+          <!-- Metrica 2: Elementos Unicos (sort/2) -->
+          <div class="metric-box">
+            <span class="metric-tag">sort/2</span>
+            <span class="metric-figure" id="val-unique-items">0</span>
+            <span class="metric-caption">Elementos únicos</span>
+          </div>
+          <!-- Metrica 3: Pertenencia (member/2) -->
+          <div class="metric-box">
+            <span class="metric-tag">member/2</span>
+            <span class="metric-figure" id="val-member-status">--</span>
+            <span class="metric-caption">Evaluación de pertenencia</span>
+          </div>
+        </div>
+
+        <!-- Cuadricula de 3 Columnas para las Listas Procesadas -->
+        <div class="columns-grid">
+          <!-- Columna A: Lista Invertida (reverse/2) -->
+          <article class="data-column">
+            <header class="column-header">
+              <div class="column-title-group">
+                <span class="predicate-tag">reverse/2</span>
+                <h2>Inventario Invertido</h2>
+              </div>
+              <span class="column-count" id="count-inverted">0</span>
+            </header>
+            <p class="column-description">
+              Secuencia en orden inverso respecto al orden original.
+            </p>
+            <ol class="items-stream" id="stream-inverted"></ol>
+          </article>
+
+          <!-- Columna B: Lista Ordenada con Duplicados (msort/2) -->
+          <article class="data-column">
+            <header class="column-header">
+              <div class="column-title-group">
+                <span class="predicate-tag">msort/2</span>
+                <h2>Con Duplicados</h2>
+              </div>
+              <span class="column-count" id="count-ordered">0</span>
+            </header>
+            <p class="column-description">
+              Ordenamiento lexicográfico conservando multiplicidad de átomos.
+            </p>
+            <ol class="items-stream" id="stream-ordered"></ol>
+          </article>
+
+          <!-- Columna C: Lista Ordenada sin Duplicados (sort/2) -->
+          <article class="data-column">
+            <header class="column-header">
+              <div class="column-title-group">
+                <span class="predicate-tag">sort/2</span>
+                <h2>Sin Duplicados</h2>
+              </div>
+              <span class="column-count" id="count-unique">0</span>
+            </header>
+            <p class="column-description">
+              Ordenamiento lexicográfico con eliminación estricta de duplicados.
+            </p>
+            <ol class="items-stream" id="stream-unique"></ol>
+          </article>
+        </div>
+
+        <!-- Panel Inspector: Visor colapsable del JSON unificado -->
+        <section class="inspector-panel">
+          <header class="inspector-header" id="inspector-toggle">
+            <div class="inspector-title">
+              <span class="inspector-badge">JSON</span>
+              <span>Variables unificadas en memoria</span>
+            </div>
+            <button type="button" class="btn-link" id="inspector-toggle-btn">
+              Mostrar respuesta cruda
+            </button>
+          </header>
+          <div
+            class="inspector-content"
+            id="inspector-content"
+            style="display: none"
+          >
+            <pre><code id="json-output">// Esperando datos...</code></pre>
+          </div>
+        </section>
+      </main>
+
+      <!-- 5. Pie de pagina informativo -->
+      <footer class="site-footer">
+        <div class="footer-col">
+          <span class="footer-label">Motor Lógico</span>
+          <span class="footer-val">SWI-Prolog 10.0.2 / PySwip</span>
+        </div>
+        <div class="footer-col">
+          <span class="footer-label">Reglas enlazadas</span>
+          <span class="footer-val"
+            >append/3, length/2, member/2, reverse/2, sort/2, msort/2</span
+          >
+        </div>
+        <div class="footer-col">
+          <span class="footer-label">Estado</span>
+          <span class="footer-val">Listo para consultas</span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Script cliente con logica Fetch y renderizado dinámico -->
+    <script src="app.js"></script>
+  </body>
+</html>
