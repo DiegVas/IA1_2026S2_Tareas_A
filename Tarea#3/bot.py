@@ -30,10 +30,10 @@ bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode="HTML")
 
 # Datos del grupo e integrantes
 INTEGRANTES = [
-    {"nombre": "Jemima Chavajay", "carnet": "201801521", "porcentaje": "25%"},
-    {"nombre": "Pablo Schaart", "carnet": "201800951", "porcentaje": "25%"},
-    {"nombre": "Diego Vasquez", "carnet": "202300638", "porcentaje": "25%"},
-    {"nombre": "Jencer Hernández", "carnet": "202002141", "porcentaje": "25%"},
+    {"nombre": "Jemima Chavajay", "carnet": "201801521"},
+    {"nombre": "Pablo Schaart", "carnet": "201800951"},
+    {"nombre": "Diego Vasquez", "carnet": "202300638"},
+    {"nombre": "Jencer Hernández", "carnet": "202002141"},
 ]
 
 INFO_CONTACTO = (
@@ -163,8 +163,7 @@ def cmd_integrantes(message):
     for i, integrante in enumerate(INTEGRANTES, 1):
         texto += (
             f"<b>{i}. {integrante['nombre']}</b>\n"
-            f"   • Carnet: <code>{integrante['carnet']}</code>\n"
-            f"   • Participación: <b>{integrante['porcentaje']}</b>\n\n"
+            f"   • Carnet: <code>{integrante['carnet']}</code>\n\n"
         )
     bot.reply_to(message, texto)
 
@@ -423,7 +422,10 @@ def cmd_aleatorio(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call):
     data = call.data
-    bot.answer_callback_query(call.id)  # Confirmar recepción al cliente Telegram
+    try:
+        bot.answer_callback_query(call.id)  # Confirmar recepción al cliente Telegram
+    except Exception:
+        pass
 
     if data == "cmd_hola":
         nombre = call.from_user.first_name or "Usuario"
@@ -443,7 +445,7 @@ def callback_handler(call):
     elif data == "cmd_integrantes":
         texto = "👥 <b>Integrantes del Grupo:</b>\n\n"
         for i, integrante in enumerate(INTEGRANTES, 1):
-            texto += f"{i}. <b>{integrante['nombre']}</b> — Carnet: <code>{integrante['carnet']}</code> ({integrante['porcentaje']})\n"
+            texto += f"{i}. <b>{integrante['nombre']}</b> — Carnet: <code>{integrante['carnet']}</code>\n"
         bot.send_message(call.message.chat.id, texto)
     elif data == "cmd_contacto":
         bot.send_message(call.message.chat.id, INFO_CONTACTO, disable_web_page_preview=True)

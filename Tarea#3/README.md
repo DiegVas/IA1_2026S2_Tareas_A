@@ -8,12 +8,12 @@
 
 ## 👥 Integrantes del Grupo
 
-| Nombre | Carnet | Porcentaje de Participación |
-| :--- | :---: | :---: |
-| Jemima Chavajay | 201801521 | 25 % |
-| Pablo Schaart | 201800951 | 25 % |
-| Diego Vasquez | 202300638 | 25 % |
-| Jencer Hernández | 202002141 | 25 % |
+| Nombre | Carnet |
+| :--- | :---: |
+| Jemima Chavajay | 201801521 |
+| Pablo Schaart | 201800951 |
+| Diego Vasquez | 202300638 |
+| Jencer Hernández | 202002141 |
 
 ---
 
