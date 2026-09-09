@@ -34,6 +34,7 @@ INTEGRANTES = [
     {"nombre": "Pablo Schaart", "carnet": "201800951"},
     {"nombre": "Diego Vasquez", "carnet": "202300638"},
     {"nombre": "Jencer Hernández", "carnet": "202002141"},
+    {"nombre": "Victor Abdiel Lux Juracán", "carnet": "201403946"},
 ]
 
 INFO_CONTACTO = (

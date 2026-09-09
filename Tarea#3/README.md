@@ -14,6 +14,7 @@
 | Pablo Schaart | 201800951 |
 | Diego Vasquez | 202300638 |
 | Jencer Hernández | 202002141 |
+| Victor Abdiel Lux Juracán | 201403946 |
 
 ---
 
@@ -69,6 +70,7 @@ La planificación, diseño e implementación de la tarea fue dividida equitativa
 | **Jemima Chavajay** | 201801521 | • Diseño e implementación del menú interactivo mediante botones inline (`InlineKeyboardMarkup`) y manejo de callbacks (`/menu`).<br>• Implementación del comando de información del equipo (`/integrantes`) y canales de soporte (`/contacto`).<br>• Elaboración y revisión de la documentación en `README.md`. |
 | **Pablo Schaart** | 201800951 | • Desarrollo de la lógica del comando matemático `/calcular` con manejo de excepciones (división entre cero, operadores válidos).<br>• Implementación del generador de tablas de multiplicar (`/tabla`) y formateo dinámico de salida numérica.<br>• Creación del comando de ayuda (`/ayuda`). |
 | **Jencer Hernández** | 202002141 | • Implementación del conversor de unidades de longitud (`/convertir`) con matriz de factores métricos e imperiales (`cm`, `m`, `km`, `mi`, `ft`).<br>• Desarrollo del generador pseudoaleatorio (`/aleatorio`) con validación de rangos enteros.<br>• Manejador global de excepciones y comandos inexistentes. |
+| **Victor Abdiel Lux Juracán** | 201403946 | • Pruebas de integración, verificación de comandos interactivos y validación de casos borde.<br>• Apoyo en la documentación y revisión general del bot. |
 
 ---
 
