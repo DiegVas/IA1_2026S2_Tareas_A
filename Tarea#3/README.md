@@ -27,7 +27,9 @@
 
 ## 📖 Descripción del Bot
 
-Este proyecto consiste en un **Bot interactivo de Telegram** desarrollado en **Python** utilizando la librería `pyTelegramBotAPI` (`telebot`). El bot permite a los usuarios interactuar a través de comandos con parámetros, acceder a un menú interactivo con botones inline (`InlineKeyboardMarkup`), realizar cálculos aritméticos, generar tablas de multiplicar, convertir unidades de longitud, generar números aleatorios y consultar información dinámica de fecha/hora, contacto e integrantes.
+Este proyecto consiste en un **Bot interactivo de Telegram** desarrollado en **Python puro**, sin utilizar ninguna librería o framework de Telegram (nada de `python-telegram-bot`, `pyTelegramBotAPI`, `aiogram`, etc.). Toda la comunicación con Telegram se implementa a mano mediante peticiones HTTP directas (librería `requests`) contra los endpoints REST de la API de Telegram (`sendMessage`, `getUpdates`, `answerCallbackQuery`), con un bucle propio de *long polling* que administra el `offset` para no reprocesar mensajes antiguos.
+
+El bot permite a los usuarios interactuar a través de comandos con parámetros, acceder a un menú interactivo con botones inline (construidos como JSON crudo de la API), realizar cálculos aritméticos, generar tablas de multiplicar, convertir unidades de longitud, generar números aleatorios y consultar información dinámica de fecha/hora, contacto e integrantes.
 
 El sistema cuenta con validaciones estrictas en cada comando para manejar adecuadamente entradas erróneas, argumentos incompletos y comandos desconocidos sin detener el servicio. Además, el token de autenticación se gestiona de forma segura mediante variables de entorno (`.env`), garantizando que las credenciales no se expongan en el repositorio.
 
