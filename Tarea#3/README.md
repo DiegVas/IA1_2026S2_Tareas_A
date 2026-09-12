@@ -20,8 +20,9 @@
 
 ## 🔗 Enlace al Bot de Telegram
 
-- **Link directo del bot / chat:** [https://t.me/IA1_G11_Bot](https://t.me/IA1_G11_Bot)
-- **Usuario de Telegram:** `@IA1_G11_Bot`
+- **Link directo del bot / chat:** [https://t.me/TAREA3G11_BOT](https://t.me/TAREA3G11_BOT)
+- **Usuario de Telegram:** `@TAREA3G11_BOT`
+- **Link del grupo de Telegram (para pruebas):** [https://t.me/+8kOoOdpNnfoxODI5](https://t.me/+8kOoOdpNnfoxODI5)
 
 ---
 
