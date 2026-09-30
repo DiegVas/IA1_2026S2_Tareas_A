@@ -64,3 +64,64 @@ EVENT_INTERPRETATIONS = {
     EVENT_BRAZOS_CRUZADOS:    "Postura de espera: el usuario mantiene los brazos cruzados sobre el pecho.",
     EVENT_NINGUNO:            "Monitoreando postura corporal del usuario..."
 }
+
+# =============================================================================
+# 5. INTEGRANTE 2: EXTREMIDADES Y MANOS (POSE + HANDS)
+# =============================================================================
+# Todas las distancias se miden en píxeles del frame 640x480 y se normalizan
+# por el ancho de hombros (W_h), así los umbrales no dependen de la distancia
+# del usuario a la cámara.
+
+# Visibilidad mínima de un landmark de Pose para usarlo en un gesto
+LIMB_MIN_VISIBILITY = 0.5
+
+# Mano levantada: la muñeca debe quedar por encima de la nariz al menos
+# RAISED_HAND_MARGIN * W_h  (y_nariz - y_muñeca >= 0.10 * W_h)
+RAISED_HAND_MARGIN = 0.10
+
+# Señalar: brazo extendido, casi horizontal y con el codo recto
+# |x_muñeca - x_hombro| >= POINT_MIN_EXTENSION * W_h
+POINT_MIN_EXTENSION = 1.0
+# Ángulo del antebrazo-brazo respecto a la horizontal <= POINT_MAX_TILT_DEG
+POINT_MAX_TILT_DEG = 30.0
+# Ángulo interno del codo (hombro-codo-muñeca) >= POINT_MIN_ELBOW_DEG
+POINT_MIN_ELBOW_DEG = 140.0
+
+# MediaPipe Hands (se ejecuta SOLO si Pose indica una mano en zona de pulgar)
+HANDS_MODEL_COMPLEXITY = 0
+HANDS_MAX_NUM = 2
+HANDS_MIN_DETECTION_CONFIDENCE = 0.5
+HANDS_MIN_TRACKING_CONFIDENCE = 0.5
+HAND_MODEL_PATH = os.path.join(BASE_DIR, "models", "hand_landmarker.task")
+HAND_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task"
+
+# Pulgar: longitud mínima del pulgar (MCP->punta) respecto al tamaño de palma
+# (muñeca->MCP medio) y ángulo máximo respecto a la vertical
+THUMB_MIN_LENGTH_RATIO = 0.55
+THUMB_MAX_TILT_DEG = 45.0
+
+# Persistencia temporal: cuadros consecutivos para confirmar un gesto
+GESTURE_CONFIRM_FRAMES = 3
+
+EVENT_MANO_LEVANTADA    = "Mano levantada"
+EVENT_SENALAR_IZQUIERDA = "Senalar izquierda"
+EVENT_SENALAR_DERECHA   = "Senalar derecha"
+EVENT_PULGAR_ARRIBA     = "Pulgar arriba"
+EVENT_PULGAR_ABAJO      = "Pulgar abajo"
+
+# Interpretación y respuesta según la tabla del Módulo 1 del enunciado (Proyecto 2)
+EVENT_INTERPRETATIONS.update({
+    EVENT_MANO_LEVANTADA:    "Saludo",
+    EVENT_SENALAR_IZQUIERDA: "Direccion",
+    EVENT_SENALAR_DERECHA:   "Direccion",
+    EVENT_PULGAR_ARRIBA:     "Aprobacion",
+    EVENT_PULGAR_ABAJO:      "Rechazo",
+})
+
+EVENT_RESPONSES = {
+    EVENT_MANO_LEVANTADA:    "Responder",
+    EVENT_SENALAR_IZQUIERDA: "Mostrar opcion izquierda",
+    EVENT_SENALAR_DERECHA:   "Mostrar opcion derecha",
+    EVENT_PULGAR_ARRIBA:     "Confirmar",
+    EVENT_PULGAR_ABAJO:      "Cambiar respuesta",
+}
