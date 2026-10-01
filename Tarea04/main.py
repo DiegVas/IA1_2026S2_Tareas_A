@@ -15,7 +15,6 @@ import time
 import os
 import sys
 
-# Asegurar que el directorio de Tarea04 esté en sys.path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
