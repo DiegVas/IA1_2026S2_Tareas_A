@@ -211,14 +211,9 @@ class GestureDetector:
         min_vis = config.LIMB_MIN_VISIBILITY
         arms = [(L_SHOULDER, L_ELBOW, L_WRIST), (R_SHOULDER, R_ELBOW, R_WRIST)]
 
-        # 1. Mano levantada (prioridad más alta)
-        if vis[NOSE] >= min_vis:
-            for _, _, wr in arms:
-                if vis[wr] >= min_vis and \
-                        pts[NOSE][1] - pts[wr][1] >= config.RAISED_HAND_MARGIN * shoulder_w:
-                    return config.EVENT_MANO_LEVANTADA, (vis[NOSE] + vis[wr]) / 2.0
-
-        # 2 y 3. Señalar izquierda / derecha
+        # 1. Señalar izquierda / derecha (se evalúa primero porque es más específico:
+        #    requiere extensión + horizontalidad + codo recto; así evita que un brazo
+        #    extendido lateralmente dispare "Mano levantada" por pasar por encima de la nariz).
         for sh, el, wr in arms:
             if min(vis[sh], vis[el], vis[wr]) < min_vis:
                 continue
@@ -231,6 +226,13 @@ class GestureDetector:
                     elbow >= config.POINT_MIN_ELBOW_DEG:
                 gesture = config.EVENT_SENALAR_IZQUIERDA if dx < 0 else config.EVENT_SENALAR_DERECHA
                 return gesture, (vis[sh] + vis[el] + vis[wr]) / 3.0
+
+        # 2. Mano levantada (brazo arriba sin cumplir condiciones de señalar)
+        if vis[NOSE] >= min_vis:
+            for _, _, wr in arms:
+                if vis[wr] >= min_vis and \
+                        pts[NOSE][1] - pts[wr][1] >= config.RAISED_HAND_MARGIN * shoulder_w:
+                    return config.EVENT_MANO_LEVANTADA, (vis[NOSE] + vis[wr]) / 2.0
 
         return None, 0.0
 
@@ -303,10 +305,14 @@ class GestureDetector:
         if tilt > config.THUMB_MAX_TILT_DEG:
             return None
 
-        others_y = [p[1] for i, p in enumerate(hp) if i not in (3, 4)]
-        if thumb_tip[1] < min(others_y):
+        # Referencia: muñeca + MCPs de los cuatro dedos (puntos estables,
+        # no varían con el cierre). Evita que puntas de dedos cerrados
+        # interfieran con la comparación de dirección del pulgar.
+        _BASE = (0, 5, 9, 13, 17)   # wrist, index-MCP, middle-MCP, ring-MCP, pinky-MCP
+        ref_y = [hp[i][1] for i in _BASE]
+        if thumb_tip[1] < min(ref_y):
             return config.EVENT_PULGAR_ARRIBA
-        if thumb_tip[1] > max(others_y):
+        if thumb_tip[1] > max(ref_y):
             return config.EVENT_PULGAR_ABAJO
         return None
 

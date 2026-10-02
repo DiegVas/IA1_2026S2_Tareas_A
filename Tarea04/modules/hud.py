@@ -6,6 +6,7 @@ import cv2
 class HUD:
     def __init__(self):
         self.fuente = cv2.FONT_HERSHEY_SIMPLEX
+        self._sprite_cache = {}
 
     @staticmethod
     def _texto_simple(texto):
@@ -39,26 +40,19 @@ class HUD:
         return lineas or [""]
 
     def _dibujar_sprite(self, frame, sprite):
-        """Redimensionar y superponer una imagen en la esquina inferior."""
         alto, ancho = frame.shape[:2]
 
-        # Conservar proporciones y reservar espacio para el video.
-        alto_maximo = min(150, alto // 3)
-        ancho_maximo = min(140, ancho // 4)
+        key = id(sprite)
+        if key not in self._sprite_cache:
+            alto_maximo  = min(150, alto // 3)
+            ancho_maximo = min(140, ancho // 4)
+            factor = min(ancho_maximo / sprite.shape[1], alto_maximo / sprite.shape[0])
+            nw = max(1, int(sprite.shape[1] * factor))
+            nh = max(1, int(sprite.shape[0] * factor))
+            self._sprite_cache[key] = cv2.resize(sprite, (nw, nh), interpolation=cv2.INTER_AREA)
 
-        factor = min(
-            ancho_maximo / sprite.shape[1],
-            alto_maximo / sprite.shape[0]
-        )
-
-        nuevo_ancho = max(1, int(sprite.shape[1] * factor))
-        nuevo_alto = max(1, int(sprite.shape[0] * factor))
-
-        imagen = cv2.resize(
-            sprite,
-            (nuevo_ancho, nuevo_alto),
-            interpolation=cv2.INTER_AREA
-        )
+        imagen = self._sprite_cache[key]
+        nuevo_ancho, nuevo_alto = imagen.shape[1], imagen.shape[0]
 
         x = ancho - nuevo_ancho - 12
         y = alto - nuevo_alto - 38
@@ -85,12 +79,18 @@ class HUD:
             sprite=None, fps=None, respuesta=""):
         alto, ancho = frame.shape[:2]
 
-        color = (100, 230, 180)
-
-        if estado == "Alerta":
-            color = (70, 70, 255)
-        elif estado == "Rechazo":
-            color = (0, 160, 255)
+        _COLORES_EVENTO = {
+            "Persona aparece":    ( 60, 230,  60),  # verde brillante
+            "Persona desaparece": ( 30, 100, 220),  # rojo suave
+            "Persona se acerca":  ( 50,  50, 230),  # rojo alerta
+            "Brazos cruzados":    (  0, 200, 255),  # amarillo
+            "Mano levantada":     ( 60, 230,  60),  # verde brillante
+            "Pulgar arriba":      ( 40, 200,  40),  # verde exito
+            "Pulgar abajo":       ( 40,  40, 220),  # rojo
+            "Senalar izquierda":  (220, 180,  50),  # azul claro
+            "Senalar derecha":    (220, 180,  50),  # azul claro
+        }
+        color = _COLORES_EVENTO.get(evento, (100, 230, 180))
 
         # Preparar la interpretacion en varias lineas.
         lineas = self._lineas(

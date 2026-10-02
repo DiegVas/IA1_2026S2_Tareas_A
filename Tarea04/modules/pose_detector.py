@@ -43,6 +43,8 @@ class PoseDetector:
         self.appearance_counter = 0
         self.current_landmarks = None
         self.last_shoulder_distance = 0.0
+        self._is_close        = False  # estado de proximidad (flanco de subida)
+        self._crossed_counter = 0     # estabilizador "Brazos cruzados"
 
         # Conexiones anatómicas principales para dibujado del esqueleto
         self.POSE_CONNECTIONS = [
@@ -130,16 +132,14 @@ class PoseDetector:
         # ---------------------------------------------------------------------
         if landmarks is None or len(landmarks) == 0:
             self.consecutive_misses += 1
-            self.appearance_counter = 0
+            # _crossed_counter siempre se reinicia: requiere cuadros consecutivos
+            self._crossed_counter = 0
 
-            # Si ya transcurrió el timeout de ausencia, se declara y sostiene "Persona desaparece"
-            if self.consecutive_misses >= config.DISAPPEAR_TIMEOUT_FRAMES:
+            if self.person_present and self.consecutive_misses >= config.DISAPPEAR_TIMEOUT_FRAMES:
                 self.person_present = False
                 self.last_shoulder_distance = 0.0
-                return config.EVENT_PERSONA_DESAPARECE
-
-            # Si ya estaba ausente previamente, mantener el estado de desaparición
-            if not self.person_present and self.consecutive_misses >= 3:
+                self.appearance_counter = 0
+                self._is_close = False  # persona se fue: permitir re-disparo al volver
                 return config.EVENT_PERSONA_DESAPARECE
 
             return config.EVENT_NINGUNO
@@ -173,9 +173,14 @@ class PoseDetector:
         # ---------------------------------------------------------------------
         # 3. EVALUACIÓN DE POSTURAS ACTIVAS (Prioridad sobre 'Persona aparece')
         # ---------------------------------------------------------------------
-        # Si el usuario cruza los brazos, este gesto tiene prioridad inmediata
+        # Estabilizador de brazos cruzados: requiere CROSSED_CONFIRM_FRAMES consecutivos
         if self._check_crossed_arms(l_shoulder, r_shoulder, l_elbow, r_elbow,
                                     l_wrist, r_wrist, l_hip, r_hip):
+            self._crossed_counter = min(self._crossed_counter + 1, config.CROSSED_CONFIRM_FRAMES)
+        else:
+            self._crossed_counter = 0
+
+        if self._crossed_counter >= config.CROSSED_CONFIRM_FRAMES:
             self.appearance_counter = 0
             return config.EVENT_BRAZOS_CRUZADOS
 
@@ -189,15 +194,23 @@ class PoseDetector:
 
         # ---------------------------------------------------------------------
         # 5. EVALUACIÓN: Persona se Acerca
+        # Solo dispara en el flanco de subida (cruce del umbral), no cada frame.
+        # La histéresis evita re-disparos mientras la persona sigue cerca.
         # ---------------------------------------------------------------------
+        was_close = self._is_close
         if self.last_shoulder_distance >= config.PROXIMITY_SHOULDER_RATIO_MIN:
+            self._is_close = True
+        elif self.last_shoulder_distance < config.PROXIMITY_SHOULDER_RATIO_EXIT:
+            self._is_close = False
+
+        if self._is_close and not was_close:
             return config.EVENT_PERSONA_SE_ACERCA
 
         return config.EVENT_NINGUNO
 
     def _check_crossed_arms(self, l_sh, r_sh, l_el, r_el, l_wr, r_wr, l_hip, r_hip):
         """
-        Comprobación geométrica rigurosa de brazos cruzados.
+        Comprobación geométrica de brazos cruzados.
         """
         # Validar visibilidad
         l_vis = getattr(l_wr, 'visibility', 1.0)
@@ -206,7 +219,7 @@ class PoseDetector:
             return False
 
         # Altura en el torso (entre hombros y caderas)
-        top_y = min(l_sh.y, r_sh.y) - 0.05
+        top_y    = min(l_sh.y, r_sh.y) - 0.05
         bottom_y = max(l_hip.y, r_hip.y) + 0.05
         if not (top_y < l_wr.y < bottom_y and top_y < r_wr.y < bottom_y):
             return False

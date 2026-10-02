@@ -22,6 +22,10 @@ FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 CAMERA_INDEX = 0
 
+# True cuando se ejecuta en Raspberry Pi con Pi Camera Module (usa CAP_V4L2).
+# False para webcam USB en PC o en la propia Pi.
+USE_PI_CAMERA = False
+
 # =============================================================================
 # 2. CONFIGURACIÓN DE MEDIAPIPE POSE
 # =============================================================================
@@ -54,11 +58,17 @@ APPEARANCE_HOLD_FRAMES = 45
 
 # Umbral de distancia euclidiana normalizada entre hombros.
 # d = sqrt((x_l - x_r)^2 + (y_l - y_r)^2)
-PROXIMITY_SHOULDER_RATIO_MIN = 0.35
+PROXIMITY_SHOULDER_RATIO_MIN  = 0.35
+# Umbral de salida (histéresis): la persona debe retroceder por debajo de este
+# valor para que el evento pueda re-dispararse en la siguiente aproximación.
+PROXIMITY_SHOULDER_RATIO_EXIT = 0.30
 
 # Brazos cruzados: factor de tolerancia del ancho de muñecas respecto a codos.
 # dist(muñecas) < factor * dist(codos)
 CROSSED_ARMS_RATIO_MAX = 0.65
+
+# Cuadros consecutivos para confirmar "Brazos cruzados" (igual que gestos de mano).
+CROSSED_CONFIRM_FRAMES = 3
 
 # =============================================================================
 # 4. EVENTOS ASIGNADOS AL INTEGRANTE 1
